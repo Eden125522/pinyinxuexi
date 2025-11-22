@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 汉字笔画学习</title>
+    <!-- 引入 Hanzi Writer 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+    <!-- 引入 拼音库 -->
+    <script src="https://unpkg.com/pinyin-pro"></script>
+    <style>
+        body {
+            font-family: 'KaiTi', '楷体', sans-serif;
+            background-color: #fdfdfd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 50px;
+        }
+
+        h1 { color: #333; margin-bottom: 20px; }
+
+        /* 输入区域 */
+        .input-area { margin-bottom: 30px; display: flex; gap: 10px; }
+        input {
+            padding: 10px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 200px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background-color: #c0392b; }
+
+        /* 拼音显示 */
+        #pinyin-display {
+            font-size: 36px;
+            color: #555;
+            margin-bottom: 10px;
+            font-weight: bold;
+            min-height: 50px;
+        }
+
+        /* 田字格容器 */
+        #character-target {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+
+        /* 控制按钮 */
+        .controls { margin-top: 20px; }
+        .btn-secondary {
+            background-color: #3498db;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🖌️ 汉字笔画 AI 学习</h1>
+
+    <div class="input-area">
+        <input type="text" id="charInput" placeholder="输入一个汉字 (如: 龙)" maxlength="1">
+        <button onclick="renderCharacter()">生成</button>
+    </div>
+
+    <div id="pinyin-display"></div>
+    <div id="character-target"></div>
+
+    <div class="controls">
+        <button class="btn-secondary" onclick="writer.animateCharacter()">🎥 重播动画</button>
+        <button class="btn-secondary" onclick="speakCharacter()">🔊 朗读发音</button>
+        <button class="btn-secondary" onclick="writer.quiz()">✍️ 开启测验模式</button>
+    </div>
+
+    <script>
+        let writer;
+        let currentChar = '';
+
+        function renderCharacter() {
+            const input = document.getElementById('charInput').value;
+            if (!input) return;
+            
+            // 获取第一个汉字
+            const char = input[0];
+            currentChar = char;
+
+            // 1. 清空旧内容
+            document.getElementById('character-target').innerHTML = '';
+            document.getElementById('pinyin-display').innerHTML = '';
+
+            // 2. 生成拼音 (使用 pinyin-pro 库)
+            const pinyinText = pinyinPro.pinyin(char);
+            document.getElementById('pinyin-display').innerText = pinyinText;
+
+            // 3. 初始化 Hanzi Writer
+            // width/height: 画布大小
+            // padding: 内边距
+            // showOutline: 是否显示灰色底稿
+            // strokeColor: 笔画颜色
+            writer = HanziWriter.create('character-target', char, {
+                width: 300,
+                height: 300,
+                padding: 20,
+                showOutline: true,
+                strokeAnimationSpeed: 1, // 动画速度
+                delayBetweenStrokes: 200, // 笔画间隔
+                strokeColor: '#333',
+                radicalColor: '#e74c3c', // 部首可以变色（高级功能）
+                
+                // 下面配置田字格样式
+                showCharacter: false, // 初始不显示字，等动画
+                backgroundGrids: {
+                    stroke: '#e09090', // 田字格线条颜色（红色）
+                    lineWidth: 1,
+                    dashArray: [5, 5] // 虚线
+                }
+            });
+
+            // 4. 开始动画并朗读
+            writer.animateCharacter();
+            speakCharacter();
+        }
+
+        // 语音合成功能
+        function speakCharacter() {
+            if (!currentChar) return;
+            const utterance = new SpeechSynthesisUtterance(currentChar);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 0.8; // 语速稍慢
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 初始化默认展示一个字
+        document.getElementById('charInput').value = '爱';
+        renderCharacter();
+    </script>
+</body>
+</html>
